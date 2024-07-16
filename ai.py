@@ -35,46 +35,81 @@ should = \
 }
 
 def checkSeg(x, y, useHead = False):
+    if x < 0 or y < 0 or x > 14 or y > 14:
+        return True
     if useHead:
-        sgmnts = segments
+        sgmnts = segments[1:]
     else:
-        sgmnts = segments[:-1]
+        sgmnts = segments[1:-1]
     for segment in sgmnts:
-        if segment.x == x and segment.y == y:
-            return True
+        try:
+            if segment.x == x and segment.y == y:
+                return True
+        except AttributeError:
+            pass
     return False
 
 
 def checkAppl(x,y): return (apple.x == x and apple.y == y)
 
-def getWeights():
-    global weights
-    weights = []
-    with open('weights.txt') as wFile:
-        wValues = wFile.readline().split(',')
-        print(wValues)
-getWeights()
 
 def aiTick(segs, apl, pos):
-    global segments, apple, should
+    global segments, apple, should, last
     segments = segs
     apple = apl
+    should['right'] = False
+    should['left'] = False
+    should['up'] = False
+    should['down'] = False
     if pos[0] < apl.x and not checkSeg(pos[0]+1,pos[1]):
         should['right'] = True
-    else:
-        should['right'] = False
-    if pos[0] > apl.x and not checkSeg(pos[0]-1,pos[1]):
+        last = 'horizontal'
+    elif pos[0] > apl.x and not checkSeg(pos[0]-1,pos[1]):
         should['left'] = True
-    else:
-        should['left'] = False
-    if pos[1] > apl.y and not checkSeg(pos[0],pos[1]-1):
+        last = 'horizontal'
+    elif pos[1] > apl.y and not checkSeg(pos[0],pos[1]-1):
         should['up'] = True
-    else:
-        should['up'] = False
-    if pos[1] < apl.y and not checkSeg(pos[0],pos[1]+1):
+        last = 'vertical'
+    elif pos[1] < apl.y and not checkSeg(pos[0],pos[1]+1):
         should['down'] = True
-    else:
-        should['down'] = False
+        last = 'vertical'
+    chosen = False
+    for key in should:
+        if should[key]:
+            chosen = True
+    if not chosen:
+        match last:
+            case 'horizontal':
+                if not checkSeg(pos[0],pos[1]-1):
+                    should['up'] = True
+                    chosen = True
+                elif not checkSeg(pos[0],pos[1]+1):
+                    should['down'] = True
+                    chosen = True
+            case 'vertical':
+                if not checkSeg(pos[0]-1,pos[1]):
+                    should['left'] = True
+                    chosen = True
+                elif not checkSeg(pos[0]+1,pos[1]):
+                    should['right'] = True
+                    chosen = True
+    if not chosen:
+        panic(pos)
+    
+def panic(pos):
+    print('PANIC!')
+    if not checkSeg(pos[0],pos[1]-1):
+        should['up'] = True
+        last = 'vertical'
+    elif not checkSeg(pos[0],pos[1]+1):
+        should['down'] = True
+        last = 'vertical'
+    elif not checkSeg(pos[0]+1,pos[1]):
+        should['right'] = True
+        last = 'horizontal'
+    elif not checkSeg(pos[0]-1,pos[1]):
+        should['left'] = True
+        last = 'horizontal'
 
     # nums = toNums()
 
