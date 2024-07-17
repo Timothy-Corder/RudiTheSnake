@@ -134,6 +134,7 @@ venv.bak/
 .snek_env
 snek_env/
 snek_env.bak/
+.vscode/
 
 # Spyder project settings
 .spyderproject

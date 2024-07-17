@@ -18,11 +18,12 @@ import ai
 def main():
     global controlRunning
     tick, half = makeGlobals()
+    ai.getModel()
     half.start()
     def kThread():
         while True:
             if not running:
-                buttons.waitFor('start', tps)
+                # buttons.waitFor('start', tps)
                 dontKill.set(False)
                 break
             time.sleep(1)
@@ -31,6 +32,7 @@ def main():
     def endGame(event):
         root.destroy()
         exit()
+
 
     root.bind("<Escape>", endGame)
     killThread = Thread(target=kThread)
@@ -41,6 +43,7 @@ def main():
     dontKill.trace_add('write',kill)
     root.bind()
     root.mainloop()
+    ai.getFitness(player.length)
     controlRunning = False
     
 
@@ -216,7 +219,8 @@ def makeGlobals():
     buttons = ai.Joystick(16,19,21,20,26)
     snake = {}
     running = True
-    tps = 2
+    # tps = 2
+    tps = 30
     gridSize = {'x': 15, 'y': 15}
     player = Player(gridSize['x']//2,gridSize['y']//2,'r')
     length = 3
@@ -259,14 +263,13 @@ def controllerTick():
                 down = down[:-1]
             if down == None:
                 down = []
-            print(down)
         except ValueError:
             down = buttons.getPressed()
 
         if len(down) != 0:
             for button in down:
                 player.addTurn(button)
-        time.sleep((1/tps)/4)
+        time.sleep((1/tps)/2)
 
 def tick():
     global running, tps
