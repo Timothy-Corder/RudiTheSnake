@@ -251,7 +251,7 @@ def getSprites():
 
 def controllerTick():
     while running:
-        ai.aiTick(segments, apple, (player.x,player.y))
+        ai.aiTick(segments, apple, (player.x,player.y), gridSize)
 
         try:
             down = buttons.getPressed()

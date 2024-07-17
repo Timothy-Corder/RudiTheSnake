@@ -52,15 +52,62 @@ def checkSeg(x, y, useHead = False):
 
 def checkAppl(x,y): return (apple.x == x and apple.y == y)
 
+priorities = \
+{
+    'toApple': 1.0,
+    'awayWall': 0.1,
+}
 
-def aiTick(segs, apl, pos):
-    global segments, apple, should, last
+def aiTick(segs, apl, pos, gridSize):
+    global segments, apple, should, last, size
     segments = segs
     apple = apl
+    size = gridSize
+
     should['right'] = False
     should['left'] = False
     should['up'] = False
     should['down'] = False
+
+    x = pos[0]
+    y = pos[1]
+    leftDist = x
+    rightDist = size['x'] - (x + 1)
+    topDist = y
+    botDist = size['y'] - (y + 1)
+    appleDistX = pos[0] - apple.x
+    appleDistY = pos[1] - apple.y
+    segL = checkSeg(pos[0]-1,pos[1])
+    segR = checkSeg(pos[0]+1,pos[1])
+    segU = checkSeg(pos[0],pos[1]-1)
+    segD = checkSeg(pos[0],pos[1]+1)
+
+    def sortDict(dictionary:dict): return dictionary[list(dictionary.keys())[0]]
+    def predict(dictionary:dict):
+        sortDict(dictionary)
+        predictX = {}
+        [list(dictionary.keys())[0]]
+
+    leftWeight = (leftDist * priorities['awayWall']) + (appleDistX * priorities['toApple']) - (1000 * int(segL))
+    rightWeight = (rightDist * priorities['awayWall']) + (-appleDistX * priorities['toApple']) - (1000 * int(segR))
+    upWeight = (topDist * priorities['awayWall']) + (appleDistY * priorities['toApple']) - (1000 * int(segU))
+    downWeight = (botDist * priorities['awayWall']) + (-appleDistY * priorities['toApple']) - (1000 * int(segD))
+    weights = [{'left':leftWeight},{'right':rightWeight},{'up':upWeight},{'down':downWeight}]
+    weight = sorted(weights,key=predict,reverse=True)[0]
+    print(weights)
+    should[list(weight.keys())[0]] = True
+    # match(weight):
+    #     case 'left':
+    #         should['left'] = True
+    #     case 'right':
+    #         should['right'] = True
+    #     case 'up':
+    #         should['up'] = True
+    #     case 'down':
+    #         should['down'] = True
+    
+    
+    """
     if pos[0] < apl.x and not checkSeg(pos[0]+1,pos[1]):
         should['right'] = True
         last = 'horizontal'
@@ -111,8 +158,7 @@ def panic(pos):
         should['left'] = True
         last = 'horizontal'
 
-    # nums = toNums()
-
+"""
 
 # def toNums():
 #     array = []
