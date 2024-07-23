@@ -3,9 +3,10 @@ import keyboard
 import json
 import random
 
+with open('usingModel.txt') as nameFile:
+    modelName = nameFile.read().strip()
+
 class Joystick():
-    def __init__(self,u,l,d,r,start):
-        ...
     def getPressed(self):
         global should
         pressed = []
@@ -64,7 +65,13 @@ priorities = \
 
 def getModel():
     global priorities
-    with open('model.model') as model:
+    open(f'{modelName}.model', 'a+').close()
+    with open(f'{modelName}.model') as model:
+        empty = True if (model.readline() == '') else False
+    if empty:
+        with open(f'{modelName}.model', 'w') as model:
+            model.write('{"toApple": 0.0, "awayWall": 0.0, "enclosed": 0.0, "fitness": 0.0}')
+    with open(f'{modelName}.model') as model:
         jsonDecoder = json.JSONDecoder()
         jsModel = jsonDecoder.decode(model.read())
         priorities = jsModel 
@@ -83,17 +90,21 @@ def randomizeStats():
 
 
 def getFitness(score):
+    global priorities
     try:
-        aplX = (2 / ((pos[0] - abs(apple.x))))
-        aplY = (2 / ((pos[0] - abs(apple.y))))
+        aplX = (2 / (((abs(pos[0] - apple.x)))))
+        aplY = (2 / (((abs(pos[1] - apple.y)))))
     except ZeroDivisionError:
         aplX = 0
         aplY = 0
-    fitness = round(((aplX + aplY)/100) * score,2)
+    fitness = round(((aplX + aplY)/100) * (score - 3),2)
     if fitness > priorities['fitness']:
         priorities['fitness'] = fitness
-        with open('model.model', 'w') as model:
+        with open(f'{modelName}.model', 'w') as model:
             json.dump(priorities, model)
+    print(f'Round Fitness: {fitness}')
+    return priorities['fitness']
+    
 
 
 
