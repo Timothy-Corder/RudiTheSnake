@@ -1,0 +1,265 @@
+import time
+import keyboard
+import json
+import random
+
+with open('usingModel.txt') as nameFile:
+    modelName = nameFile.read().strip()
+
+class Joystick():
+    def getPressed(self):
+        global should
+        pressed = []
+        if should['up']:
+            pressed.append('u')
+        if should['left']:
+            pressed.append('l')
+        if should['down']:
+            pressed.append('d')
+        if should['right']:
+            pressed.append('r')
+        if keyboard.is_pressed('space'):
+            pressed.append('start')
+        return pressed
+    def isActive(self, target):
+        return (target in self.getPressed())
+    def waitFor(self, target, tps):
+        while target not in self.getPressed():
+            time.sleep((1/tps)/2)
+    def getButtons(self):
+        return []
+
+should = \
+{
+    'up': False,
+    'down': False,
+    'left': False,
+    'right': False,
+}
+
+def checkSeg(x, y, useHead = False, useEdges = True, useTail = False):
+    if x < 0 or y < 0 or x > 14 or y > 14 and useEdges:
+        return True
+    if not useTail:
+        sgmnts = segments[1:]
+    else:
+        sgmnts = segments
+    if not useHead:
+        sgmnts = sgmnts[:-1]
+    for segment in sgmnts:
+        try:
+            if segment.x == x and segment.y == y:
+                return True
+        except AttributeError:
+            pass
+    return False
+
+
+def checkAppl(x,y): return (apple.x == x and apple.y == y)
+
+priorities = \
+{
+    'toApple': 1.0,
+    'awayWall': 0.1,
+    'enclosed': 0.6,
+}
+
+
+def fillCheck(x, y, mode):
+    checked = []
+    def checkBlock(x, y):
+        nonlocal checked
+        safe = 0
+        if (x, y) in checked:
+            return safe
+        checked.append((x, y))
+        if checkSeg(x, y, True, True, True):
+            return safe
+        else:
+            safe += checkBlock(x+1, y)
+            safe += checkBlock(x-1, y)
+            safe += checkBlock(x, y+1)
+            safe += checkBlock(x, y-1)
+        return safe + 1
+    if mode == "danger":
+        return checkBlock(x, y)
+
+
+def getModel():
+    global priorities
+    open(f'{modelName}.model', 'a+').close()
+    with open(f'{modelName}.model') as model:
+        empty = True if (model.readline() == '') else False
+    if empty:
+        with open(f'{modelName}.model', 'w') as model:
+            model.write('{"toApple": 0.0, "awayWall": 0.0, "enclosed": 0.0, "fitness": 0.0}')
+    with open(f'{modelName}.model') as model:
+        jsonDecoder = json.JSONDecoder()
+        jsModel = jsonDecoder.decode(model.read())
+        priorities = jsModel 
+    randomizeStats()
+
+
+def logAI(weights, weight):
+    print(weights, list(weight.keys())[0].upper(), ' ' * (120 - (len(str(weights)) + len(str(weight)))), sep=': ', end='\r')
+
+
+def randomizeStats():
+    randomize = random.choice(['toApple', 'awayWall', 'enclosed'])
+    change = random.randrange(-20,20,1)/100
+    priorities[randomize] += change
+    print(priorities)
+
+
+def getFitness(score):
+    global priorities
+    try:
+        aplX = (2 / (((abs(pos[0] - apple.x)))))
+        aplY = (2 / (((abs(pos[1] - apple.y)))))
+    except ZeroDivisionError:
+        aplX = 0
+        aplY = 0
+    fitness = round(((aplX + aplY)/100) * (score - 3),2)
+    if fitness > priorities['fitness']:
+        priorities['fitness'] = fitness
+        with open(f'{modelName}.model', 'w') as model:
+            json.dump(priorities, model)
+    print(f'Round Fitness: {fitness}')
+    return priorities['fitness']
+    
+
+
+
+def aiTick(segs, apl, position, gridSize, length):
+    global segments, apple, should, last, size, pos
+    segments = segs
+    apple = apl
+    size = gridSize
+    pos = position
+
+    should['right'] = False
+    should['left'] = False
+    should['up'] = False
+    should['down'] = False
+
+    x = pos[0]
+    y = pos[1]
+    leftDist = x
+    rightDist = size['x'] - (x + 1)
+    topDist = y
+    botDist = size['y'] - (y + 1)
+    appleDistX = pos[0] - apple.x
+    appleDistY = pos[1] - apple.y
+    if checkAppl(x, y):
+        tail = True
+    else:
+        tail = False
+    segL = checkSeg(pos[0]-1,pos[1],useTail=tail)
+    segR = checkSeg(pos[0]+1,pos[1],useTail=tail)
+    segU = checkSeg(pos[0],pos[1]-1,useTail=tail)
+    segD = checkSeg(pos[0],pos[1]+1,useTail=tail)
+
+    def predict(dictionary:dict):
+        name = list(dictionary.keys())[0]
+        predictX = {'left':-1,'right':1,'up':0,'down':0}
+        predictY = {'left':0,'right':0,'up':-1,'down':1}
+        neighbors = 0
+        if checkSeg(pos[0]-1+predictX[name],pos[1]+predictY[name], useEdges=False): neighbors += 1
+        if checkSeg(pos[0]+1+predictX[name],pos[1]+predictY[name], useEdges=False): neighbors += 1
+        if checkSeg(pos[0]+predictX[name],pos[1]-1+predictY[name], useEdges=False): neighbors += 1
+        if checkSeg(pos[0]+predictX[name],pos[1]+1+predictY[name], useEdges=False): neighbors += 1
+        if neighbors < 3:
+            dictionary[name] -= neighbors * priorities['enclosed']
+        else:
+            dictionary[name] -= 1000
+        return round(dictionary[name],1)
+    
+    leftWeight = round((leftDist * priorities['awayWall']) + (appleDistX * priorities['toApple']) - (1000 * int(segL)) + ((fillCheck(pos[0]+1, pos[1], "danger") - length) * priorities["enclosed"]),2)
+    rightWeight = round((rightDist * priorities['awayWall']) + (-appleDistX * priorities['toApple']) - (1000 * int(segR)) + ((fillCheck(pos[0]-1, pos[1], "danger") - length) * priorities["enclosed"]),2)
+    upWeight = round((topDist * priorities['awayWall']) + (appleDistY * priorities['toApple']) - (1000 * int(segU)) + ((fillCheck(pos[0], pos[1]+1, "danger") - length) * priorities["enclosed"]),2)
+    downWeight = round((botDist * priorities['awayWall']) + (-appleDistY * priorities['toApple']) - (1000 * int(segD)) + ((fillCheck(pos[0], pos[1]-1, "danger") - length) * priorities["enclosed"]),2)
+    weights = [{'left':leftWeight},{'right':rightWeight},{'up':upWeight},{'down':downWeight}]
+    weight = sorted(weights,key=predict,reverse=True)[0]
+    # logAI(weights, weight)
+    should[list(weight.keys())[0]] = True
+    # match(weight):
+    #     case 'left':
+    #         should['left'] = True
+    #     case 'right':
+    #         should['right'] = True
+    #     case 'up':
+    #         should['up'] = True
+    #     case 'down':
+    #         should['down'] = True
+    
+    
+    """
+    if pos[0] < apl.x and not checkSeg(pos[0]+1,pos[1]):
+        should['right'] = True
+        last = 'horizontal'
+    elif pos[0] > apl.x and not checkSeg(pos[0]-1,pos[1]):
+        should['left'] = True
+        last = 'horizontal'
+    elif pos[1] > apl.y and not checkSeg(pos[0],pos[1]-1):
+        should['up'] = True
+        last = 'vertical'
+    elif pos[1] < apl.y and not checkSeg(pos[0],pos[1]+1):
+        should['down'] = True
+        last = 'vertical'
+    chosen = False
+    for key in should:
+        if should[key]:
+            chosen = True
+    if not chosen:
+        match last:
+            case 'horizontal':
+                if not checkSeg(pos[0],pos[1]-1):
+                    should['up'] = True
+                    chosen = True
+                elif not checkSeg(pos[0],pos[1]+1):
+                    should['down'] = True
+                    chosen = True
+            case 'vertical':
+                if not checkSeg(pos[0]-1,pos[1]):
+                    should['left'] = True
+                    chosen = True
+                elif not checkSeg(pos[0]+1,pos[1]):
+                    should['right'] = True
+                    chosen = True
+    if not chosen:
+        panic(pos)
+    
+def panic(pos):
+    print('PANIC!')
+    if not checkSeg(pos[0],pos[1]-1):
+        should['up'] = True
+        last = 'vertical'
+    elif not checkSeg(pos[0],pos[1]+1):
+        should['down'] = True
+        last = 'vertical'
+    elif not checkSeg(pos[0]+1,pos[1]):
+        should['right'] = True
+        last = 'horizontal'
+    elif not checkSeg(pos[0]-1,pos[1]):
+        should['left'] = True
+        last = 'horizontal'
+
+"""
+
+# def toNums():
+#     array = []
+#     for _ in range(15):
+#         arRow = []
+#         for __ in range(15):
+#             arRow.append(0)
+#         array.append(arRow)
+#     for i in range(15):
+#         for j in range(15):
+#             if checkSeg(i, j, True):
+#                 array[i][j] = 1
+#     array[position[1]][position[0]] == 2
+#     array[apple.x][apple.y] == 3
+            
+#     print()
+#     for row in array:
+#         print(row)

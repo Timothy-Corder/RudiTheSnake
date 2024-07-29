@@ -100,7 +100,7 @@ class SnakeGame:
         if not self.running:
             return
         else:
-            ai.aiTick(SnkDefs.segments, self.apple, (self.player.x, self.player.y), self.gridSize)
+            ai.aiTick(SnkDefs.segments, self.apple, (self.player.x, self.player.y), self.gridSize, self.player.length)
             try:
                 down = self.buttons.getPressed()
                 if 'start' in down:

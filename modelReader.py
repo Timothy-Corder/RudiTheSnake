@@ -8,22 +8,18 @@ class Neuron:
             self.nType = nType
         self.threshold = threshold
         self.name = name
+        self.fired = False
 
 class Connection:
     def __init__(self,nFrom:Neuron = None,weight:float = 1.0,nTo:Neuron = None) -> None:
         self.nFrom = nFrom
         self.weight = weight
         self.nTo = nTo
+        self.value = 0.0
 
 def parseModel(modelName):
     inputs = \
-    {
-    "0,0", "0,1", "0,2", "0,3", "0,4",
-    "1,0", "1,1", "1,2", "1,3", "1,4",
-    "2,0", "2,1", "2,2", "2,3", "2,4",
-    "3,0", "3,1", "3,2", "3,3", "3,4",
-    "4,0", "4,1", "4,2", "4,3", "4,4",
-    }
+    {'fillLeft', 'fillRight', 'fillUp', 'fillDown', "length", "appleDistX", "appleDistY"}
     outputs = \
     {
         'left',
