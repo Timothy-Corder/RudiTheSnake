@@ -94,6 +94,7 @@ class Player():
         self.y = y
         self.direction = direction
         self.length = 3
+        self.moves = 0
     def move(self, gridSize):
         if len(self._turns) > 0:
             turning = (self._turns.pop(0))

@@ -5,10 +5,10 @@ import ai
 import SnkDefs
 import sys
 
-render = False if (len(sys.argv) == 2 and sys.argv[1] == '--no-render') else True
 
 class SnakeGame:
     def __init__(self):
+        self.render = False if (len(sys.argv) == 2 and sys.argv[1] == '--no-render') else True
         self.failId = ''
         self.root = tk.Tk()
         self.noFitness = False
@@ -16,19 +16,17 @@ class SnakeGame:
         self.gridSize = {'x': 15, 'y': 15}
         self.blockSize = 32
         self.player = SnkDefs.Player(self.gridSize['x']//2, self.gridSize['y']//2, 'r')
-        SnkDefs.setup(self.blockSize, self.root, render)
+        SnkDefs.setup(self.blockSize, self.root, self.render)
         self.makeApple()
         self.lastCheck = self.player.length
-        self.buttons = ai.Joystick()
-        ai.getModel()
         self.setupWindow()
         self.running = False
 
     def setupWindow(self):
-        self.root.title(('Snake AI' if render else 'Training...'))
+        self.root.title(('Snake AI' if self.render else 'Training...'))
         self.root.config(background='#000000')
         self.root.tk.call('tk', 'scaling', '-displayof', '.', 1)
-        if render:
+        if self.render:
             for i in range(self.gridSize['x']):
                 self.root.columnconfigure(i, minsize=self.blockSize, weight=1)
             for i in range(self.gridSize['y']):
@@ -46,7 +44,7 @@ class SnakeGame:
             if not self.checkSeg(x, y, True):
                 break
         self.apple = SnkDefs.Apple(x, y, self.root)
-        if render:
+        if self.render:
             self.apple.grid(column=x, row=y)
 
     def checkSeg(self, x, y, useHead=False):
@@ -58,11 +56,17 @@ class SnakeGame:
 
     def start(self):
         self.running = True
-        self.root.after(int(1000/self.tps), self.gameLoop)
-        self.root.after(5000, self.failCheck)
-        self.root.mainloop()
+        if self.render:
+            self.root.after(int(1000/self.tps), self.gameLoop)
+            self.root.after(5000, self.failCheck)
+            self.root.mainloop()
+        else:
+            while self.running:
+                self.gameLoop()
+        return self.player.length, self.player.moves
 
     def gameLoop(self):
+        self.player.moves+=1
         if not self.running:
             return
 
@@ -100,15 +104,14 @@ class SnakeGame:
         if not self.running:
             return
         else:
-            ai.aiTick(SnkDefs.segments, self.apple, (self.player.x, self.player.y), self.gridSize, self.player.length)
-            try:
-                down = self.buttons.getPressed()
-                if 'start' in down:
-                    down = down[:-1]
-                if down is None:
-                    down = []
-            except ValueError:
-                down = self.buttons.getPressed()
+            outputs = ai.aiTick(SnkDefs.segments, self.apple, (self.player.x, self.player.y), self.gridSize, self.player.length)
+            
+            down = []
+            
+            for key in outputs:
+                if outputs[key]:
+                    down.append(key[0])
+
 
             for button in down:
                 self.player.addTurn(button)
@@ -133,22 +136,14 @@ class SnakeGame:
             self.failId = self.root.after(5000,self.failCheck)
 
     def newGame(self, event):
-        if render:
+        if self.render:
             self.noFitness = True
         self.stop()
         
     def cleanup(self):
         if not self.noFitness:
             print('Calculating new Fitness')
-            print(f'New Fitness: {ai.getFitness(self.player.length)}')
-        components = self.buttons.getButtons()
-        for comp in components:
-            while True:
-                try:
-                    comp.close()
-                    break
-                except:
-                    time.sleep(0.5)
+            print(f'New Fitness: {ai.getFitness(self.player.length, self.player.moves, 300)}')
 
 if __name__ == '__main__':
     while True:
