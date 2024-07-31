@@ -138,6 +138,7 @@ class Player():
         except IndexError:
             pass
         self.makeSeg(self.x, self.y, 'forward', gridSize)
+        self.moves += 1
         # return turning
     def addTurn(self, direct):
         if len(self._turns) == 0:

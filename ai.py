@@ -1,8 +1,12 @@
 from modelReader import Neuron, Connection, parseModel
 import math
+import random
+import copy
+import json
+from game import SnakeGame
 
 class NeuralNetwork():
-    def __init__(self, neurons:dict[Neuron], connections:list[Connection]) -> None:
+    def __init__(self, neurons:dict[str, Neuron], connections:list[Connection]) -> None:
         self.neurons = neurons
         self.connections = connections
         self.sortedNeurons = self._topological_sort()
@@ -59,20 +63,19 @@ class NeuralNetwork():
     def sigmoid(x):
         return 1 / (1 + math.exp(-x))
 
-def getFitness(score, steps, max_steps):
-    length_fitness = score * 100  # Prioritize snake length
-    efficiency = max(0, 1 - (steps / max_steps))  # Reward efficiency
-    survival_bonus = min(1, steps / max_steps) * 50  # Reward survival time
-    return length_fitness + (efficiency * 100) + survival_bonus 
+def getFitness(score, steps, maxSteps):
+    lengthFitness = score * 100  # Prioritize snake length
+    efficiency = max(0, 1 - (steps / maxSteps))  # Reward efficiency
+    survivalBonus = min(1, steps / maxSteps) * 50  # Reward survival time
+    return lengthFitness + (efficiency * 100) + survivalBonus 
 
 def loadNetwork():
     global network
     with open('usingModel.txt') as nameFile:
         modelName = nameFile.read().strip()
         neurons, connections = parseModel(modelName)
-    return NeuralNetwork(neurons, connections)
+    return mutateNetwork(NeuralNetwork(neurons, connections))
 
-network = loadNetwork()
 
 def checkSeg(segments, x, y, useHead = False, useEdges = True, useTail = False):
     if x < 0 or y < 0 or x > grid['x'] or y > grid['y'] and useEdges:
@@ -124,3 +127,57 @@ def aiTick(segs, apl, position, gridSize, length):
     outputs = network.activate(inputs)
 
     return outputs
+
+# Training time!
+
+def mutateNetwork(network, mutationRate=0.1, mutationRange=0.5, newConnRate=0.2, newNeurRate=0.1, killNeurRate=0.01):
+    mutated: NeuralNetwork = copy.deepcopy(network)
+    neurons = list(mutated.neurons.values())
+    inputs = [n for n in neurons if n.nType == 'in']
+    hidden = [n for n in neurons if n.nType == 'hidden']
+    outputs = [n for n in neurons if n.nType == 'out']
+
+    # Remove neurons
+    for neuron in hidden[:]:  # Create a copy to iterate over
+        if random.random() < killNeurRate:
+            hidden.remove(neuron)
+            del mutated.neurons[neuron.name]
+            mutated.connections = [c for c in mutated.connections if c.nFrom != neuron and c.nTo != neuron]
+
+    # Add new neuron
+    if random.random() < newNeurRate:
+        newNeuron = Neuron('hidden', random.uniform(-mutationRange, mutationRange), f'hidden{len(hidden)}')
+        possibleFrom = inputs + hidden
+        fromNeuron = random.choice(possibleFrom)
+        possibleTo = outputs + [n for n in hidden if n != fromNeuron]
+        toNeuron = random.choice(possibleTo)
+
+        mutated.connections.append(Connection(fromNeuron, random.uniform(-mutationRange, mutationRange), newNeuron))
+        mutated.connections.append(Connection(newNeuron, random.uniform(-mutationRange, mutationRange), toNeuron))
+        mutated.neurons[newNeuron.name] = newNeuron
+        hidden.append(newNeuron)
+
+    # Add new connection
+    if random.random() < newConnRate:
+        possibleFrom = inputs + hidden
+        fromNeuron = random.choice(possibleFrom)
+        possibleTo = outputs + [n for n in hidden if n != fromNeuron]
+        toNeuron = random.choice(possibleTo)
+        mutated.connections.append(Connection(fromNeuron, random.uniform(-mutationRange, mutationRange), toNeuron))
+
+    # Mutate existing connections
+    for conn in mutated.connections:
+        if random.random() < mutationRate:
+            conn.weight += random.uniform(-mutationRange, mutationRange)
+
+    # Mutate neuron thresholds
+    for neuron in neurons:
+        if random.random() < mutationRate:
+            neuron.threshold += random.uniform(-mutationRange, mutationRange)
+
+    return mutated
+
+def newGeneration(population, fitnesses, popSize):
+    ...
+    
+network = loadNetwork()

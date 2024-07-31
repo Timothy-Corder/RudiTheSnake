@@ -66,7 +66,6 @@ class SnakeGame:
         return self.player.length, self.player.moves
 
     def gameLoop(self):
-        self.player.moves+=1
         if not self.running:
             return
 
