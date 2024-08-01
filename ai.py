@@ -1,9 +1,9 @@
-from modelReader import Neuron, Connection, parseModel
+from modelReader import Neuron, Connection, parseModel, writeModel
 import math
 import random
 import copy
 import json
-from game import SnakeGame
+import os
 
 class NeuralNetwork():
     def __init__(self, neurons:dict[str, Neuron], connections:list[Connection]) -> None:
@@ -70,11 +70,13 @@ def getFitness(score, steps, maxSteps):
     return lengthFitness + (efficiency * 100) + survivalBonus 
 
 def loadNetwork():
-    global network
+    global modelName
     with open('usingModel.txt') as nameFile:
         modelName = nameFile.read().strip()
-        neurons, connections = parseModel(modelName)
-    return mutateNetwork(NeuralNetwork(neurons, connections))
+        neurons, connections = parseModel(f'models/{modelName}')
+    if not os.path.exists(f'models/trained/{modelName}'):
+        os.mkdir(f'models/trained/{modelName}')
+    return NeuralNetwork(neurons, connections)
 
 
 def checkSeg(segments, x, y, useHead = False, useEdges = True, useTail = False):
@@ -109,7 +111,7 @@ def fillCheck(sgmnts, x, y):
     return check(x, y)
             
 
-def aiTick(segs, apl, position, gridSize, length):
+def aiTick(network, segs, apl, position, gridSize, length):
     global grid
     grid = gridSize
     # 'fillLeft', 'fillRight', 'fillUp', 'fillDown', 'length', 'appleDistX', 'appleDistY'
@@ -177,7 +179,32 @@ def mutateNetwork(network, mutationRate=0.1, mutationRange=0.5, newConnRate=0.2,
 
     return mutated
 
-def newGeneration(population, fitnesses, popSize):
-    ...
+def trainNetwork(generations = 300, population = 200, survivorDivisor = 2):
+    def trainSort(net:NeuralNetwork):
+        from game import SnakeGame
+        game = SnakeGame(net)
+        length, moves = game.start()
+        game.cleanup()
+        return getFitness(length, moves, 300 * (length - 2))
+        
+    seedNetwork = loadNetwork()
+    networks = []
+    # Create and sort the first generation
+    for _ in range(population):
+        networks.append(mutateNetwork(seedNetwork))
     
-network = loadNetwork()
+    for gen in range(generations):
+        print(f"Training Generation {gen}")
+        # Sort the networks by their fitness
+        networks.sort(key=trainSort, reverse=True)
+        
+        # Kill the unfit networks
+        networks = networks[:(population // survivorDivisor)]
+        netCount = len(networks)
+        for __ in range(survivorDivisor - 1):
+            for network in networks[:netCount]:
+                networks.append((mutateNetwork(network)))
+        
+        writeModel(f'models/trained/{modelName}/gen{gen}',networks[0].neurons, networks[0].connections)
+
+trainNetwork()

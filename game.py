@@ -1,18 +1,18 @@
 import tkinter as tk
 import time
 import random
-import ai
+
 import SnkDefs
 import sys
 
 
 class SnakeGame:
-    def __init__(self):
+    def __init__(self, network):
         self.render = False if (len(sys.argv) == 2 and sys.argv[1] == '--no-render') else True
         self.failId = ''
         self.root = tk.Tk()
         self.noFitness = False
-        self.tps = 30
+        self.tps = 60
         self.gridSize = {'x': 15, 'y': 15}
         self.blockSize = 32
         self.player = SnkDefs.Player(self.gridSize['x']//2, self.gridSize['y']//2, 'r')
@@ -21,6 +21,7 @@ class SnakeGame:
         self.lastCheck = self.player.length
         self.setupWindow()
         self.running = False
+        self.network = network
 
     def setupWindow(self):
         self.root.title(('Snake AI' if self.render else 'Training...'))
@@ -58,7 +59,7 @@ class SnakeGame:
         self.running = True
         if self.render:
             self.root.after(int(1000/self.tps), self.gameLoop)
-            self.root.after(5000, self.failCheck)
+            self.failId = self.root.after(5000, self.failCheck)
             self.root.mainloop()
         else:
             while self.running:
@@ -100,10 +101,11 @@ class SnakeGame:
             self.stop()
 
     def controllerTick(self):
+        from ai import aiTick
         if not self.running:
             return
         else:
-            outputs = ai.aiTick(SnkDefs.segments, self.apple, (self.player.x, self.player.y), self.gridSize, self.player.length)
+            outputs = aiTick(self.network, SnkDefs.segments, self.apple, (self.player.x, self.player.y), self.gridSize, self.player.length)
             
             down = []
             
@@ -116,11 +118,9 @@ class SnakeGame:
                 self.player.addTurn(button)
             
 
-    def stop(self):
+    def stop(self, event = None):
         self.running = False
         self.root.after(200, self.root.destroy)
-        if self.failId != '':
-            self.root.after_cancel(self.failId)
 
     def endGame(self, event):
         self.stop()
@@ -129,7 +129,9 @@ class SnakeGame:
     
     def failCheck(self):
         if self.player.length == self.lastCheck:
-            self.newGame(None)
+            self.stop(None)
+        if (self.player.moves / max(self.player.length - 3, 1)) > 300:
+            self.stop(None)
         else:
             self.lastCheck = self.player.length
             self.failId = self.root.after(5000,self.failCheck)
@@ -140,12 +142,16 @@ class SnakeGame:
         self.stop()
         
     def cleanup(self):
-        if not self.noFitness:
-            print('Calculating new Fitness')
-            print(f'New Fitness: {ai.getFitness(self.player.length, self.player.moves, 300)}')
+        if self.failId != '':
+            self.root.after_cancel(self.failId)
+        # if not self.noFitness:
+        #     print('Calculating new Fitness')
+        #     print(f'New Fitness: {ai.getFitness(self.player.length, self.player.moves, 300)}')
 
 if __name__ == '__main__':
     while True:
         game = SnakeGame()
         game.start()
         game.cleanup()
+
+

@@ -1,4 +1,5 @@
 import json
+import random
 
 class Neuron:
     def __init__(self,nType:str,threshold:float,name:str) -> None:
@@ -68,3 +69,18 @@ def parseModel(modelName):
         model_file.close()
     return None, None
 
+def writeModel(filename, neurons, connections):
+    
+    # Create the model dictionary
+    model = {
+        "neurons": neurons,
+        "connections": connections
+    }
+
+    # Save the model to a JSON file
+    with open(f"{filename}.model", 'w') as f:
+        json.dump(model, f, indent=2)
+
+    print(f"Model saved to {filename}.model")
+    print(f"Total neurons: {len(neurons)}")
+    print(f"Total connections: {len(connections)}")

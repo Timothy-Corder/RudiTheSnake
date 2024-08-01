@@ -1,7 +1,7 @@
 import json
 import random
 
-def create_sample_model(filename, num_hidden=0):
+def createRandom(filename, num_hidden=2):
     inputs = ['fillLeft', 'fillRight', 'fillUp', 'fillDown', "length", "appleDistX", "appleDistY"]
     outputs = ['left', 'right', 'up', 'down']
     hidden = []
@@ -66,6 +66,3 @@ def create_sample_model(filename, num_hidden=0):
     print(f"Model saved to {filename}.model")
     print(f"Total neurons: {len(neurons)}")
     print(f"Total connections: {len(connections)}")
-
-# Create the sample model
-create_sample_model('sample_model', 2)
