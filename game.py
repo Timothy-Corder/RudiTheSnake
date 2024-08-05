@@ -1,5 +1,4 @@
 import tkinter as tk
-import time
 import random
 
 import SnkDefs
@@ -144,14 +143,12 @@ class SnakeGame:
     def cleanup(self):
         if self.failId != '':
             self.root.after_cancel(self.failId)
-        # if not self.noFitness:
-        #     print('Calculating new Fitness')
-        #     print(f'New Fitness: {ai.getFitness(self.player.length, self.player.moves, 300)}')
 
 if __name__ == '__main__':
-    while True:
-        game = SnakeGame()
-        game.start()
-        game.cleanup()
+    import ai
+    # while True:
+    #     game = SnakeGame()
+    #     game.start()
+    #     game.cleanup()
 
 

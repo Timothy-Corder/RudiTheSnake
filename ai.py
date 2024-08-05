@@ -2,8 +2,13 @@ from modelReader import Neuron, Connection, parseModel, writeModel
 import math
 import random
 import copy
-import json
 import os
+import sys
+
+render = True
+for arg in sys.argv:
+    if arg == '--no-render':
+        render = False
 
 class NeuralNetwork():
     def __init__(self, neurons:dict[str, Neuron], connections:list[Connection]) -> None:
@@ -62,12 +67,40 @@ class NeuralNetwork():
     @staticmethod
     def sigmoid(x):
         return 1 / (1 + math.exp(-x))
+    
+    def toJson(self):
+        neurons = []
+        for neuron in self.neurons.values():
+            neurons.append({
+                'name': neuron.name,
+                'type': neuron.nType,
+                'threshold': neuron.threshold
+            })
+        connections = []
+        for conn in self.connections:
+            connections.append({
+                'from': conn.nFrom.name,
+                'to': conn.nTo.name,
+                'weight': conn.weight
+            })
+        return neurons, connections
 
-def getFitness(score, steps, maxSteps):
-    lengthFitness = score * 100  # Prioritize snake length
-    efficiency = max(0, 1 - (steps / maxSteps))  # Reward efficiency
-    survivalBonus = min(1, steps / maxSteps) * 50  # Reward survival time
-    return lengthFitness + (efficiency * 100) + survivalBonus 
+def getFitness(score, steps):
+    baseScore = score * 100  # Base score for apples eaten
+
+    # Survival bonus that increases logarithmically
+    survivalBonus = math.log(steps + 1) * 200  # +1 to avoid log(0)
+
+    # Efficiency bonus (apples per step)
+    efficiencyBonus = (score / steps) * 1000 if steps > 0 else 0
+
+    # Exploration bonus (encourages movement)
+    explorationBonus = min(steps, 100)  # Cap at 100 to prevent overemphasis on very long games
+
+    # Combine all factors
+    fitness = baseScore + survivalBonus + efficiencyBonus + explorationBonus
+
+    return fitness
 
 def loadNetwork():
     global modelName
@@ -180,12 +213,22 @@ def mutateNetwork(network, mutationRate=0.1, mutationRange=0.5, newConnRate=0.2,
     return mutated
 
 def trainNetwork(generations = 300, population = 200, survivorDivisor = 2):
+    pop = 0
+    
     def trainSort(net:NeuralNetwork):
-        from game import SnakeGame
+        nonlocal pop
+        if render:
+            from game import SnakeGame
+        else:
+            from renderlessGame import SnakeGame
+
         game = SnakeGame(net)
         length, moves = game.start()
         game.cleanup()
-        return getFitness(length, moves, 300 * (length - 2))
+        fitness = getFitness(length, moves)
+        pop += 1
+        print(f'Member {pop} died with fitness {fitness}')
+        return fitness
         
     seedNetwork = loadNetwork()
     networks = []
@@ -194,6 +237,7 @@ def trainNetwork(generations = 300, population = 200, survivorDivisor = 2):
         networks.append(mutateNetwork(seedNetwork))
     
     for gen in range(generations):
+        pop = 0
         print(f"Training Generation {gen}")
         # Sort the networks by their fitness
         networks.sort(key=trainSort, reverse=True)
@@ -205,6 +249,7 @@ def trainNetwork(generations = 300, population = 200, survivorDivisor = 2):
             for network in networks[:netCount]:
                 networks.append((mutateNetwork(network)))
         
-        writeModel(f'models/trained/{modelName}/gen{gen}',networks[0].neurons, networks[0].connections)
+        neurons, connections = networks[0].toJson()
+        writeModel(f'models/trained/{modelName}/gen{gen}', neurons, connections)
 
-trainNetwork()
+trainNetwork(population=20)
