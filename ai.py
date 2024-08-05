@@ -165,7 +165,7 @@ def aiTick(network, segs, apl, position, gridSize, length):
 
 # Training time!
 
-def mutateNetwork(network, mutationRate=0.1, mutationRange=0.5, newConnRate=0.2, newNeurRate=0.1, killNeurRate=0.01):
+def mutateNetwork(network, mutationRate=0.4, mutationRange=0.5, newConnRate=0.2, newNeurRate=0.1, killRate=0.05):
     mutated: NeuralNetwork = copy.deepcopy(network)
     neurons = list(mutated.neurons.values())
     inputs = [n for n in neurons if n.nType == 'in']
@@ -174,14 +174,28 @@ def mutateNetwork(network, mutationRate=0.1, mutationRange=0.5, newConnRate=0.2,
 
     # Remove neurons
     for neuron in hidden[:]:  # Create a copy to iterate over
-        if random.random() < killNeurRate:
+        if random.random() < killRate:
             hidden.remove(neuron)
             del mutated.neurons[neuron.name]
             mutated.connections = [c for c in mutated.connections if c.nFrom != neuron and c.nTo != neuron]
+            
 
     # Add new neuron
     if random.random() < newNeurRate:
-        newNeuron = Neuron('hidden', random.uniform(-mutationRange, mutationRange), f'hidden{len(hidden)}')
+        highestHidden = 0
+        for neur in hidden:
+            name = neur.name
+            currHidden = ''
+            for char in name:
+                try:
+                    int(char)
+                    currHidden += char
+                except:
+                    pass
+            if int(currHidden) > highestHidden:
+                highestHidden = int(currHidden)
+            
+        newNeuron = Neuron('hidden', random.uniform(-mutationRange, mutationRange), f'hidden{highestHidden+1}')
         possibleFrom = inputs + hidden
         fromNeuron = random.choice(possibleFrom)
         possibleTo = outputs + [n for n in hidden if n != fromNeuron]
@@ -209,25 +223,31 @@ def mutateNetwork(network, mutationRate=0.1, mutationRange=0.5, newConnRate=0.2,
     for neuron in neurons:
         if random.random() < mutationRate:
             neuron.threshold += random.uniform(-mutationRange, mutationRange)
+    
+    # Remove a connection
+    for conn in range(mutated.connections.__len__()).__reversed__():
+        if random.random() < killRate:
+            del mutated.connections[conn-1]
+            break
 
     return mutated
 
 def trainNetwork(generations = 300, population = 200, survivorDivisor = 2):
     pop = 0
+    highestFitness = 0
     
     def trainSort(net:NeuralNetwork):
-        nonlocal pop
-        if render:
-            from game import SnakeGame
-        else:
-            from renderlessGame import SnakeGame
+        nonlocal pop, highestFitness
+        from game import SnakeGame
 
-        game = SnakeGame(net)
+        game = SnakeGame(net, render)
         length, moves = game.start()
         game.cleanup()
         fitness = getFitness(length, moves)
         pop += 1
         print(f'Member {pop} died with fitness {fitness}')
+        if fitness > highestFitness:
+            highestFitness = fitness
         return fitness
         
     seedNetwork = loadNetwork()
@@ -250,6 +270,8 @@ def trainNetwork(generations = 300, population = 200, survivorDivisor = 2):
                 networks.append((mutateNetwork(network)))
         
         neurons, connections = networks[0].toJson()
-        writeModel(f'models/trained/{modelName}/gen{gen}', neurons, connections)
+        writeModel(f'models/trained/{modelName}/gen{gen} ({round(highestFitness)})', neurons, connections)
+        print(f'Finished training generation {gen}. Highest fitness was {highestFitness}')
 
-trainNetwork(population=20)
+if __name__ == '__main__':
+    trainNetwork(survivorDivisor=10)

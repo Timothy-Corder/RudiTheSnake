@@ -3,7 +3,7 @@
     {
       "name": "fillLeft",
       "type": "in",
-      "threshold": 0.8616429663607957
+      "threshold": 0.9733041952611505
     },
     {
       "name": "fillRight",
@@ -28,7 +28,7 @@
     {
       "name": "appleDistX",
       "type": "in",
-      "threshold": 0.5823002118773083
+      "threshold": 0.8361093636139992
     },
     {
       "name": "appleDistY",
@@ -38,7 +38,7 @@
     {
       "name": "left",
       "type": "out",
-      "threshold": 0.7159997547811692
+      "threshold": 0.49879667781721615
     },
     {
       "name": "right",
@@ -48,7 +48,7 @@
     {
       "name": "up",
       "type": "out",
-      "threshold": 0.1697407556960644
+      "threshold": 0.5936840054386956
     },
     {
       "name": "down",
@@ -64,6 +64,11 @@
       "name": "hidden1",
       "type": "hidden",
       "threshold": 0.5253029249327249
+    },
+    {
+      "name": "hidden2",
+      "type": "hidden",
+      "threshold": -0.4739682459384965
     }
   ],
   "connections": [
@@ -75,7 +80,7 @@
     {
       "from": "fillLeft",
       "to": "hidden1",
-      "weight": -0.6353873820993761
+      "weight": -0.8110468831540386
     },
     {
       "from": "appleDistY",
@@ -90,7 +95,7 @@
     {
       "from": "fillUp",
       "to": "hidden1",
-      "weight": -0.12161706129930705
+      "weight": 0.1735287194503634
     },
     {
       "from": "fillDown",
@@ -100,22 +105,22 @@
     {
       "from": "fillDown",
       "to": "hidden1",
-      "weight": -0.9589765329450095
+      "weight": -1.1499957199663007
     },
     {
       "from": "length",
       "to": "left",
-      "weight": 0.2807750621392453
+      "weight": 0.006855365488713572
     },
     {
       "from": "length",
       "to": "hidden1",
-      "weight": 0.6311444116168745
+      "weight": 0.5002655179582196
     },
     {
       "from": "appleDistX",
       "to": "left",
-      "weight": 0.9648125831325223
+      "weight": 1.4235930163237405
     },
     {
       "from": "appleDistX",
@@ -135,7 +140,7 @@
     {
       "from": "appleDistY",
       "to": "hidden1",
-      "weight": 0.10248132735152171
+      "weight": 0.026242963505288763
     },
     {
       "from": "hidden0",
@@ -145,7 +150,7 @@
     {
       "from": "hidden1",
       "to": "left",
-      "weight": -0.6823480945892477
+      "weight": -0.5822588362338971
     },
     {
       "from": "hidden1",
@@ -155,12 +160,32 @@
     {
       "from": "hidden1",
       "to": "down",
-      "weight": 0.06821359709482167
+      "weight": 0.04222535199100119
     },
     {
       "from": "hidden1",
       "to": "hidden0",
-      "weight": -0.10719623630861097
+      "weight": -0.05476176062080362
+    },
+    {
+      "from": "fillLeft",
+      "to": "down",
+      "weight": -0.018205765788532835
+    },
+    {
+      "from": "fillRight",
+      "to": "hidden2",
+      "weight": -0.17873155444853683
+    },
+    {
+      "from": "hidden2",
+      "to": "up",
+      "weight": 0.43454573837590316
+    },
+    {
+      "from": "hidden1",
+      "to": "hidden2",
+      "weight": -0.1867060650431539
     }
   ]
 }

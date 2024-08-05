@@ -28,7 +28,7 @@
     {
       "name": "appleDistX",
       "type": "in",
-      "threshold": 0.5823002118773083
+      "threshold": 0.9292746114319014
     },
     {
       "name": "appleDistY",
@@ -48,7 +48,7 @@
     {
       "name": "up",
       "type": "out",
-      "threshold": 0.1697407556960644
+      "threshold": 0.6549109338118134
     },
     {
       "name": "down",
@@ -105,7 +105,7 @@
     {
       "from": "length",
       "to": "left",
-      "weight": 0.2807750621392453
+      "weight": 0.21604052362846615
     },
     {
       "from": "length",
@@ -115,7 +115,7 @@
     {
       "from": "appleDistX",
       "to": "left",
-      "weight": 0.9648125831325223
+      "weight": 1.3934325475296698
     },
     {
       "from": "appleDistX",
@@ -145,7 +145,7 @@
     {
       "from": "hidden1",
       "to": "left",
-      "weight": -0.6823480945892477
+      "weight": -0.5822588362338971
     },
     {
       "from": "hidden1",
@@ -155,7 +155,7 @@
     {
       "from": "hidden1",
       "to": "down",
-      "weight": 0.06821359709482167
+      "weight": 0.04222535199100119
     },
     {
       "from": "hidden1",

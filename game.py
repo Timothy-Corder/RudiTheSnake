@@ -6,8 +6,10 @@ import sys
 
 
 class SnakeGame:
-    def __init__(self, network):
-        self.render = False if (len(sys.argv) == 2 and sys.argv[1] == '--no-render') else True
+    def __init__(self, network, render = True):
+        self.render = render
+        if __name__ == '__main__':
+            self.render = False if (len(sys.argv) == 2 and sys.argv[1] == '--no-render') else True
         self.failId = ''
         self.root = tk.Tk()
         self.noFitness = False
