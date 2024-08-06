@@ -1,0 +1,126 @@
+{
+  "neurons": [
+    {
+      "name": "fillLeft",
+      "type": "in",
+      "threshold": 0.8461006455068579
+    },
+    {
+      "name": "fillRight",
+      "type": "in",
+      "threshold": 0.6389821725504182
+    },
+    {
+      "name": "fillUp",
+      "type": "in",
+      "threshold": 0.538457429153976
+    },
+    {
+      "name": "fillDown",
+      "type": "in",
+      "threshold": -2.4909162548373005
+    },
+    {
+      "name": "length",
+      "type": "in",
+      "threshold": -2.6716422718442017
+    },
+    {
+      "name": "appleDistX",
+      "type": "in",
+      "threshold": 1.2094106505110158
+    },
+    {
+      "name": "appleDistY",
+      "type": "in",
+      "threshold": 0.05813303741945586
+    },
+    {
+      "name": "left",
+      "type": "out",
+      "threshold": 0.4028621929378847
+    },
+    {
+      "name": "right",
+      "type": "out",
+      "threshold": -1.2108293658360796
+    },
+    {
+      "name": "up",
+      "type": "out",
+      "threshold": 0.6535283046681555
+    },
+    {
+      "name": "down",
+      "type": "out",
+      "threshold": 0.6974296662532534
+    },
+    {
+      "name": "hidden1",
+      "type": "hidden",
+      "threshold": -0.4631505338934887
+    },
+    {
+      "name": "hidden2",
+      "type": "hidden",
+      "threshold": 0.04363852429467818
+    },
+    {
+      "name": "hidden3",
+      "type": "hidden",
+      "threshold": 0.6759478323215812
+    }
+  ],
+  "connections": [
+    {
+      "from": "fillLeft",
+      "to": "up",
+      "weight": -0.705262862388147
+    },
+    {
+      "from": "appleDistY",
+      "to": "up",
+      "weight": 1.124990951165637
+    },
+    {
+      "from": "appleDistX",
+      "to": "left",
+      "weight": 1.393416777115632
+    },
+    {
+      "from": "appleDistY",
+      "to": "down",
+      "weight": -2.4484601634986083
+    },
+    {
+      "from": "fillLeft",
+      "to": "down",
+      "weight": -0.72056428205758
+    },
+    {
+      "from": "length",
+      "to": "hidden1",
+      "weight": -1.0108832789028839
+    },
+    {
+      "from": "fillDown",
+      "to": "right",
+      "weight": 1.9365916566163064
+    },
+    {
+      "from": "hidden1",
+      "to": "hidden2",
+      "weight": 0.3556405857479338
+    },
+    {
+      "from": "appleDistX",
+      "to": "hidden3",
+      "weight": 0.09481562291039813
+    },
+    {
+      "from": "hidden3",
+      "to": "up",
+      "weight": -0.5289983840287953
+    }
+  ]
+}

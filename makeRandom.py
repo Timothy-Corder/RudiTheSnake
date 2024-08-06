@@ -1,7 +1,7 @@
 import json
 import random
 
-def createRandom(filename, num_hidden=2):
+def createRandom(filename, num_hidden=0):
     inputs = ['fillLeft', 'fillRight', 'fillUp', 'fillDown', "length", "appleDistX", "appleDistY"]
     outputs = ['left', 'right', 'up', 'down']
     hidden = []
@@ -60,9 +60,11 @@ def createRandom(filename, num_hidden=2):
     }
 
     # Save the model to a JSON file
-    with open(f"{filename}.model", 'w') as f:
+    with open(f"models/{filename}.model", 'w') as f:
         json.dump(model, f, indent=2)
 
     print(f"Model saved to {filename}.model")
     print(f"Total neurons: {len(neurons)}")
     print(f"Total connections: {len(connections)}")
+
+createRandom('model1', num_hidden=2)

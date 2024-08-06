@@ -1,0 +1,60 @@
+{
+  "neurons": [
+    {
+      "name": "fillLeft",
+      "type": "in",
+      "threshold": 0.5
+    },
+    {
+      "name": "fillRight",
+      "type": "in",
+      "threshold": 0.5
+    },
+    {
+      "name": "fillUp",
+      "type": "in",
+      "threshold": 0.5
+    },
+    {
+      "name": "fillDown",
+      "type": "in",
+      "threshold": 0.5
+    },
+    {
+      "name": "length",
+      "type": "in",
+      "threshold": 0.5
+    },
+    {
+      "name": "appleDistX",
+      "type": "in",
+      "threshold": 0.5
+    },
+    {
+      "name": "appleDistY",
+      "type": "in",
+      "threshold": 0.5
+    },
+    {
+      "name": "left",
+      "type": "out",
+      "threshold": 0.5
+    },
+    {
+      "name": "right",
+      "type": "out",
+      "threshold": 0.5
+    },
+    {
+      "name": "up",
+      "type": "out",
+      "threshold": 0.5
+    },
+    {
+      "name": "down",
+      "type": "out",
+      "threshold": 0.5
+    }
+  ],
+  "connections": []
+}

@@ -5,10 +5,14 @@ import copy
 import os
 import sys
 
+showcase = False
 render = True
 for arg in sys.argv:
     if arg == '--no-render':
         render = False
+for arg in sys.argv:
+    if arg == '--showcase':
+        showcase = True
 
 class NeuralNetwork():
     def __init__(self, neurons:dict[str, Neuron], connections:list[Connection]) -> None:
@@ -107,6 +111,8 @@ def loadNetwork():
     with open('usingModel.txt') as nameFile:
         modelName = nameFile.read().strip()
         neurons, connections = parseModel(f'models/{modelName}')
+    if not os.path.exists(f'models/trained'):
+        os.mkdir(f'models/trained')
     if not os.path.exists(f'models/trained/{modelName}'):
         os.mkdir(f'models/trained/{modelName}')
     return NeuralNetwork(neurons, connections)
@@ -273,5 +279,11 @@ def trainNetwork(generations = 300, population = 200, survivorDivisor = 2):
         writeModel(f'models/trained/{modelName}/gen{gen} ({round(highestFitness)})', neurons, connections)
         print(f'Finished training generation {gen}. Highest fitness was {highestFitness}')
 
-if __name__ == '__main__':
+if not showcase:
     trainNetwork(survivorDivisor=10)
+else:
+    network = loadNetwork()
+    from game import SnakeGame
+    while True:
+        game = SnakeGame(network, show = True)
+        game.start()

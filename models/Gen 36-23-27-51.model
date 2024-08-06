@@ -1,0 +1,101 @@
+{
+  "neurons": [
+    {
+      "name": "fillLeft",
+      "type": "in",
+      "threshold": -1.0463449230785011
+    },
+    {
+      "name": "fillRight",
+      "type": "in",
+      "threshold": 1.7886114718780366
+    },
+    {
+      "name": "fillUp",
+      "type": "in",
+      "threshold": 1.040006458391868
+    },
+    {
+      "name": "fillDown",
+      "type": "in",
+      "threshold": -3.3866241156410277
+    },
+    {
+      "name": "length",
+      "type": "in",
+      "threshold": -1.89084957188311
+    },
+    {
+      "name": "appleDistX",
+      "type": "in",
+      "threshold": 2.2963482054982634
+    },
+    {
+      "name": "appleDistY",
+      "type": "in",
+      "threshold": -0.4630181653584102
+    },
+    {
+      "name": "left",
+      "type": "out",
+      "threshold": 0.6671477584726523
+    },
+    {
+      "name": "right",
+      "type": "out",
+      "threshold": -1.5250676903021156
+    },
+    {
+      "name": "up",
+      "type": "out",
+      "threshold": 0.5356673253836333
+    },
+    {
+      "name": "down",
+      "type": "out",
+      "threshold": 0.8850973071960158
+    },
+    {
+      "name": "hidden4",
+      "type": "hidden",
+      "threshold": 1.9988173079214775
+    }
+  ],
+  "connections": [
+    {
+      "from": "fillLeft",
+      "to": "up",
+      "weight": -0.6532242474958186
+    },
+    {
+      "from": "appleDistY",
+      "to": "up",
+      "weight": 2.676715907949635
+    },
+    {
+      "from": "appleDistX",
+      "to": "left",
+      "weight": 2.058630889387862
+    },
+    {
+      "from": "appleDistY",
+      "to": "down",
+      "weight": -3.721716986948327
+    },
+    {
+      "from": "fillLeft",
+      "to": "down",
+      "weight": -1.1055543159282089
+    },
+    {
+      "from": "hidden4",
+      "to": "right",
+      "weight": -0.6145201834987474
+    },
+    {
+      "from": "fillUp",
+      "to": "right",
+      "weight": 0.352224582275646
+    }
+  ]
+}

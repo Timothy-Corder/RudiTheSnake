@@ -5,11 +5,10 @@ import PIL.ImageTk
 from tkinter import TclError
 import tkinter as tk
 
-def setup(blkSize, rooot, rndr):
-    global snake, rots, blockSize, segments, root, render
+def setup(blkSize, rndr, root:tk.Tk = None):
+    global snake, rots, blockSize, segments, render
     render = rndr
     segments = []
-    root = rooot
     blockSize = blkSize
     rots = {'u':0,'l':90,'d':180,'r':270}
     snake = {}
@@ -24,24 +23,25 @@ def setup(blkSize, rooot, rndr):
         types = ['head', 'forward', 'r', 'l', 'tail']
         for i in range(spriteCount):
             snake[types[i]] = sprites[i]
-        appleImg = PIL.Image.open('appl.png')
-        appleImg.load()
-        appleImg = appleImg.resize((blockSize,blockSize),0)
-        appleImg = PIL.ImageTk.PhotoImage(appleImg,master=root)
+        if render:
+            appleImg = PIL.Image.open('appl.png')
+            appleImg.load()
+            appleImg = appleImg.resize((blockSize,blockSize),0)
+            appleImg = PIL.ImageTk.PhotoImage(appleImg)
     getSprites()
 
-
 class Apple():
-    def __init__(self,x,y,root):
+    def __init__(self,x,y):
         self.x = x
         self.y = y
-        self._label = tk.Label(root,image=appleImg,border=0,width=blockSize,height=blockSize)
+        if render:
+            self._label = tk.Label(image=appleImg,border=0,width=blockSize,height=blockSize)
     def grid(self, **kwargs):
-        try:
-            if render:
+        if render:
+            try:
                 self._label.grid(kwargs)
-        except TclError:
-            pass
+            except TclError:
+                pass
 
 class Segment():
     def __init__(self, lifetime, facing, segType, x, y):
@@ -50,11 +50,12 @@ class Segment():
         self.segType = segType
         self.x = x
         self.y = y
-        image = snake['head'].resize((blockSize,blockSize),0)
-        image = image.rotate(rots[self.facing])
-        image = PIL.ImageTk.PhotoImage(image,master=root)
-        self._label = tk.Label(root,image=image,border=0, width=blockSize, height=blockSize)
-        self._label.image = image
+        if render:
+            image = snake['head'].resize((blockSize,blockSize),0)
+            image = image.rotate(rots[self.facing])
+            image = PIL.ImageTk.PhotoImage(image)
+            self._label = tk.Label(image=image,border=0, width=blockSize, height=blockSize)
+            self._label.image = image
     def tick(self):
         try:
             self.lifetime -= 1
@@ -65,21 +66,23 @@ class Segment():
         except RuntimeError:
             exit()
     def destroy(self):
-        self._label.destroy()
+        if render:
+            self._label.destroy()
         segments[segments.index(self)] = None
     def spriteRefresh(self):
+        if render:
             image = snake[self.segType].resize((blockSize,blockSize),0)
             image = image.rotate(rots[self.facing])
-            img = PIL.ImageTk.PhotoImage(image,master=root)
+            img = PIL.ImageTk.PhotoImage(image)
             self._label.config(image=img)
             self._label.image = img
 
     def grid(self, **kwargs):
-        try:
-            if render:
+        if render:
+            try:
                 self._label.grid(kwargs)
-        except TclError:
-            pass
+            except TclError:
+                pass
 
 class Player():
     def __init__(self, x, y, direction):
